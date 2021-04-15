@@ -1,5 +1,6 @@
 import os
 
+
 # Changeable
 secure_sessions = bool(os.getenv("SECURE"))
 
