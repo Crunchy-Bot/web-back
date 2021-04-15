@@ -1,4 +1,5 @@
 import aiohttp
+import urllib.parse
 
 import router
 import pydantic
@@ -6,6 +7,41 @@ import pydantic
 from typing import List, Optional
 from shared import GeneralMessage
 from server import Backend
+from utils import settings
+
+
+search_url = (
+    f"http://{settings.search_engine_domain}/search"
+    f"?engine={{engine}}"
+    f"&query={{query}}"
+    f"&fuzzy={{fuzzy}}"
+    f"&limit={{limit}}"
+)
+
+
+ORDER_BY_OPTIONS = {
+    "default",
+    "rating-asc",
+    "rating-desc",
+}
+
+
+class FilterByOptions:
+    trending = 1 << 0
+    recommended = 1 << 1
+    popular = 1 << 2
+    no_favourites = 1 << 3
+    no_watchlist = 1 << 4
+    no_recommended = 1 << 5
+
+    all = (
+        trending |
+        recommended |
+        popular |
+        no_recommended |
+        no_watchlist |
+        no_recommended
+    )
 
 
 class SearchTypes:
@@ -18,6 +54,9 @@ class SearchPayload(pydantic.BaseModel):
     type: str = SearchTypes.anime
     limit: int = 10
     chunk: int = -1
+    fuzzy: bool = False
+    order_by: str = "default"
+    filter_by: int = 1
 
     @pydantic.validator("type")
     def type_limits(cls, v):
@@ -53,7 +92,21 @@ class SearchPayload(pydantic.BaseModel):
         elif len(v) < 1:
             raise ValueError("query too short")
 
-        return v
+        return urllib.parse.quote(v)
+
+    @pydantic.validator("order_by")
+    def check_order(cls, v):
+        if v.lower() in ORDER_BY_OPTIONS:
+            return v.lower()
+
+        raise ValueError(f"not a valid order. Options: {ORDER_BY_OPTIONS}")
+
+    @pydantic.validator("filter_by")
+    def check_order(cls, v):
+        if FilterByOptions.all & v != 0:
+            return v
+
+        raise ValueError("not a valid bit flag")
 
 
 class SearchResult(pydantic.BaseModel):
@@ -97,7 +150,18 @@ class SearchAPI(router.Blueprint):
         tags=["Content API"],
     )
     async def search(self, payload: SearchPayload):
-        ...
+        url = search_url.format(
+            engine=payload.type,
+            query=payload.query,
+            limit=payload.limit,
+            fuzzy=payload.fuzzy,
+        )
+
+        async with self.session.get(url) as resp:
+            resp.raise_for_status()
+
+            data = await resp.json()
+
 
 
 def setup(app):
