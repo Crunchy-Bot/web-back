@@ -36,7 +36,7 @@ class SearchPayload(pydantic.BaseModel):
         return v
 
     @pydantic.validator("limit")
-    def check_limit(cls, v):
+    def check_chunk(cls, v):
         if v == -1:
             return v
         elif v < 1:
@@ -47,7 +47,7 @@ class SearchPayload(pydantic.BaseModel):
         return v
 
     @pydantic.validator("query")
-    def check_limit(cls, v):
+    def check_query(cls, v):
         if len(v) > 200:
             raise ValueError("query too long")
         elif len(v) < 1:
