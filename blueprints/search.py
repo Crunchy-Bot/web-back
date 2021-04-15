@@ -8,9 +8,6 @@ from shared import GeneralMessage
 from server import Backend
 
 
-
-
-
 class SearchTypes:
     anime = "anime"
     manga = "manga"
