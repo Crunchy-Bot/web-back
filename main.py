@@ -4,7 +4,6 @@ import router
 import utils
 
 from server import Backend
-from starlette.middleware.cors import CORSMiddleware
 
 BASE_PATH = "/v0"
 
@@ -56,13 +55,14 @@ app = Backend(
     openapi_tags=tags_metadata,
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
+@app.middleware("http")
+async def add_cors_header(request, call_next):
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = " ".join(ORIGINS)
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    return response
 
 
 @app.on_event("startup")
