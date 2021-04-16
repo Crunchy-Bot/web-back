@@ -3,6 +3,7 @@ import os
 import router
 import utils
 
+from fastapi import Request
 from server import Backend
 
 BASE_PATH = "/v0"
@@ -13,12 +14,12 @@ APP_FILES = [
     if not name.startswith("__")
 ]
 
-ORIGINS = [
+ORIGINS = {
     "http://127.0.0.1:9990",
     "http://127.0.0.1:3000",
     "https://api.crunchy.gg",
     "https://crunchy.gg",
-]
+}
 
 
 def import_callback(app_: Backend, endpoint: t.Union[router.Endpoint, router.Websocket]):
@@ -57,11 +58,17 @@ app = Backend(
 
 
 @app.middleware("http")
-async def add_cors_header(request, call_next):
+async def add_cors_header(request: Request, call_next):
     response = await call_next(request)
-    response.headers["Access-Control-Allow-Origin"] = ", ".join(ORIGINS)
-    response.headers["Access-Control-Allow-Methods"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "*"
+
+    origin = request.headers.get('Origin')
+    if origin is None:
+        return response
+
+    if origin in ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
     return response
 
 
