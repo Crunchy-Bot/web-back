@@ -59,9 +59,10 @@ class SessionCollection:
             await conn.execute("SET", id_, dumps(request.scope['session']))
 
         resp.set_cookie(
-            "session",
-            id_,
+            key="session",
+            value=id_,
             secure=settings.secure_sessions,
+            domain=request.headers.get("Origin")
         )
 
         return resp
