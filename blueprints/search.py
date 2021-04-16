@@ -201,11 +201,39 @@ class SearchResult(pydantic.BaseModel):
     tags: int
     rating: float
 
+    @pydantic.validator("id")
+    def check_id(cls, v):
+        return v[0]
+
     @pydantic.validator("parent")
     def check_parent(cls, v):
-        if v == "None":
+        if v == ["None"]:
             return None
-        return v
+        return v[0]
+
+    @pydantic.validator("title")
+    def check_title(cls, v):
+        return v[0]
+
+    @pydantic.validator("url")
+    def check_url(cls, v):
+        return v[0]
+
+    @pydantic.validator("description")
+    def check_description(cls, v):
+        return v[0]
+
+    @pydantic.validator("thumbnail")
+    def check_thumbnail(cls, v):
+        return v[0]
+
+    @pydantic.validator("tags")
+    def check_tags(cls, v):
+        return v[0]
+
+    @pydantic.validator("rating")
+    def check_rating(cls, v):
+        return v[0]
 
 
 class SearchResults(pydantic.BaseModel):
