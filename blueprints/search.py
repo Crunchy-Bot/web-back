@@ -201,6 +201,12 @@ class SearchResult(pydantic.BaseModel):
     tags: int
     rating: float
 
+    @pydantic.validator("parent")
+    def check_parent(cls, v):
+        if v == "None":
+            return None
+        return v
+
 
 class SearchResults(pydantic.BaseModel):
     """ The results of the query search query. """
@@ -275,9 +281,11 @@ class SearchAPI(router.Blueprint):
                 payload.chunk,
             ))
 
+        out = [expand_out_of_lists(item['doc']) for item in response['data']['results']]
+        print(out)
         return SearchResults(
             status=200,
-            results=[expand_out_of_lists(item['doc']) for item in response['data']['results']]
+            results=out
         )
 
 
