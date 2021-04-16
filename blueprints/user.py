@@ -53,7 +53,6 @@ class UserAPI(router.Blueprint):
     )
     async def me(self, request: Request):
         maybe_user = request.session.get("user")
-        print(maybe_user)
         if maybe_user is None:
             return {"isAuthed": False}
 

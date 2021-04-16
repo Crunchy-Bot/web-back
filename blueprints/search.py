@@ -226,7 +226,7 @@ class SearchAPI(router.Blueprint):
         description=(
             "Search for content with a given query and content type."
         ),
-        methods=["GET"],
+        methods=["POST"],
         response_model=SearchResults,
         tags=["Content API"],
     )
