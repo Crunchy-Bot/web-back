@@ -203,6 +203,7 @@ class SearchResult(pydantic.BaseModel):
 
     @pydantic.validator("parent")
     def check_parent(cls, v):
+        print(v)
         if v == "None":
             return None
         return v
@@ -282,7 +283,6 @@ class SearchAPI(router.Blueprint):
             ))
 
         out = [expand_out_of_lists(item['doc']) for item in response['data']['results']]
-        print(out)
         return SearchResults(
             status=200,
             results=out
