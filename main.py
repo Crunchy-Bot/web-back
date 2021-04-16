@@ -4,7 +4,7 @@ import router
 import utils
 
 from server import Backend
-from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
 
 BASE_PATH = "/v0"
 
