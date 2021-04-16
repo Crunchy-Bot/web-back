@@ -166,7 +166,7 @@ class SearchPayload(pydantic.BaseModel):
         elif len(v) < 1:
             raise ValueError("query too short")
 
-        return urllib.parse.quote(v)
+        return v
 
     @pydantic.validator("tags")
     def check_tags(cls, v):
