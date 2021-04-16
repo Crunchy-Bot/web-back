@@ -36,10 +36,11 @@ class SessionCollection:
 
     async def as_middleware(self, request: Request, call_next):
         maybe_session = request.cookies.get("session")
+        print(maybe_session)
         if maybe_session is not None:
             id_ = maybe_session
             async with self._cache.get() as conn:
-                sess = await conn.execute("GET", maybe_session)
+                sess = await conn.execute("GET", id_)
                 if sess is None:
                     sess = {}
                 else:
@@ -47,6 +48,8 @@ class SessionCollection:
         else:
             id_ = str(uuid4())
             sess = {}
+
+        print(sess)
 
         request.scope['session'] = sess
         resp: responses.Response = await call_next(request)
