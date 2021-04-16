@@ -62,7 +62,7 @@ class SessionCollection:
             key="session",
             value=id_,
             secure=settings.secure_sessions,
-            domain=request.headers.get("Origin")
+            domain="127.0.0.1:3000"
         )
 
         return resp
