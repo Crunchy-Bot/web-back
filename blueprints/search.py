@@ -8,7 +8,7 @@ from typing import List, Optional, Union
 from shared import GeneralMessage
 from server import Backend
 from utils import settings, chunk_n
-
+from utils.list_helpers import expand_out_of_lists
 
 search_url = f"http://{settings.search_engine_domain}/search"
 
@@ -201,40 +201,6 @@ class SearchResult(pydantic.BaseModel):
     tags: int
     rating: float
 
-    @pydantic.validator("id")
-    def check_id(cls, v):
-        return v[0]
-
-    @pydantic.validator("parent")
-    def check_parent(cls, v):
-        if v == ["None"]:
-            return None
-        return v[0]
-
-    @pydantic.validator("title")
-    def check_title(cls, v):
-        return v[0]
-
-    @pydantic.validator("url")
-    def check_url(cls, v):
-        return v[0]
-
-    @pydantic.validator("description")
-    def check_description(cls, v):
-        return v[0]
-
-    @pydantic.validator("thumbnail")
-    def check_thumbnail(cls, v):
-        return v[0]
-
-    @pydantic.validator("tags")
-    def check_tags(cls, v):
-        return v[0]
-
-    @pydantic.validator("rating")
-    def check_rating(cls, v):
-        return v[0]
-
 
 class SearchResults(pydantic.BaseModel):
     """ The results of the query search query. """
@@ -311,7 +277,7 @@ class SearchAPI(router.Blueprint):
 
         return SearchResults(
             status=200,
-            results=[item['doc'] for item in response['data']['results']]
+            results=[expand_out_of_lists(item['doc']) for item in response['data']['results']]
         )
 
 
