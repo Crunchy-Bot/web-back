@@ -121,6 +121,7 @@ class UserAPI(router.Blueprint):
             user = await resp.json()
             user = User(**user)
             request.session['user'] = user.dict()
+            print(request.session)
             return ORJSONResponse({
                 "status": 200,
                 "message": "successful authorization!"
