@@ -202,7 +202,7 @@ class SearchResult(pydantic.BaseModel):
     rating: float
 
     @pydantic.validator("parent")
-    def check_parent(self, v):
+    def check_parent(cls, v):
         if v == "None":
             return None
         return v
