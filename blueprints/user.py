@@ -71,7 +71,7 @@ class UserAPI(router.Blueprint):
         description=(
             "Attempts to authorize a user of a given code."
         ),
-        methods=["GET"],
+        methods=["POST"],
         tags=["User API"],
     )
     async def authorize(self, request: Request, code: str):
