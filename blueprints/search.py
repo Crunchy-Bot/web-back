@@ -230,8 +230,7 @@ class SearchAPI(router.Blueprint):
         response_model=SearchResults,
         tags=["Content API"],
     )
-    async def search(self, payload: dict):
-        print(payload)
+    async def search(self, payload: SearchPayload):
         if payload.tags != 0:
             filters = [FilterPayload(
                 field_name="tags",
