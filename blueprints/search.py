@@ -239,12 +239,16 @@ class SearchAPI(router.Blueprint):
         tags=["Content API"],
     )
     async def search(self, payload: SearchPayload):
-        filter1 = FilterPayload(
-            field_name="tags",
-            filter_type="include",
-            filter_field_type="bitfield",
-            filter_val=payload.tags,
-        )
+
+        if payload.tags != 0:
+            filters = [FilterPayload(
+                field_name="tags",
+                filter_type="include",
+                filter_field_type="bitfield",
+                filter_val=payload.tags,
+            )]
+        else:
+            filters = []
 
         if payload.order_by == "default":
             sort_by = None
@@ -256,9 +260,7 @@ class SearchAPI(router.Blueprint):
             query=payload.query,
             fuzzy=payload.fuzzy,
             limit=payload.limit,
-            filters=[
-                filter1
-            ],
+            filters=filters,
             sort_by=sort_by,
         )
         print(to_engine)
