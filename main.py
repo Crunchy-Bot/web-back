@@ -6,7 +6,6 @@ import utils
 from server import Backend
 from fastapi.middleware.cors import CORSMiddleware
 
-
 BASE_PATH = "/v0"
 
 APP_FILES = [
