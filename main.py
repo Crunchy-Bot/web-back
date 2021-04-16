@@ -3,7 +3,8 @@ import os
 import router
 import utils
 
-from fastapi import Request
+from fastapi import Request, Response
+from fastapi.responses import ORJSONResponse
 from server import Backend
 
 BASE_PATH = "/v0"
@@ -57,8 +58,46 @@ app = Backend(
 )
 
 
+def check_routes(request: Request):
+    # Using FastAPI instance
+    url_list = [
+        route.path
+        for route in request.app.routes
+        if "rest_of_path" not in route.path
+    ]
+    if request.url.path not in url_list:
+        return ORJSONResponse({"detail": "Not Found"}, 404)
+
+
+# Handle CORS preflight requests
+@app.options("/{rest_of_path:path}")
+async def preflight_handler(request: Request, rest_of_path: str) -> Response:
+    response = check_routes(request)
+    if response:
+        return response
+
+    origin = request.headers.get('Origin')
+    if origin is None:
+        return response
+
+    response = Response(
+        content="OK",
+        media_type="text/plain",
+        headers={
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        },
+    )
+    return response
+
+
 @app.middleware("http")
 async def add_cors_header(request: Request, call_next):
+    response = check_routes(request)
+    if response:
+        return response
+
     response = await call_next(request)
 
     origin = request.headers.get('Origin')
