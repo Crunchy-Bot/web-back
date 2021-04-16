@@ -130,10 +130,6 @@ class SearchPayload(pydantic.BaseModel):
     order_by: str = "default"
     filter_by: int = 1
 
-    def __init__(self, *args, **kwargs):
-        print(args, kwargs)
-        super().__init__(*args, **kwargs)
-
     @pydantic.validator("type")
     def type_limits(cls, v):
         if v in ("anime", "manga"):
@@ -234,8 +230,8 @@ class SearchAPI(router.Blueprint):
         response_model=SearchResults,
         tags=["Content API"],
     )
-    async def search(self, payload: SearchPayload):
-
+    async def search(self, payload: dict):
+        print(payload)
         if payload.tags != 0:
             filters = [FilterPayload(
                 field_name="tags",
