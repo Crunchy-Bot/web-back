@@ -39,7 +39,9 @@ class SessionCollection:
         if maybe_session is not None:
             id_ = maybe_session
             async with self._cache.get() as conn:
-                sess = loads(await conn.execute("GET", maybe_session))
+                sess = await conn.execute("GET", maybe_session)
+                if sess is None:
+                    sess = {}
         else:
             id_ = str(uuid4())
             sess = {}
