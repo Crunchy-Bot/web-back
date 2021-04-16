@@ -203,7 +203,7 @@ class SearchResult(pydantic.BaseModel):
 class SearchResults(pydantic.BaseModel):
     """ The results of the query search query. """
     status: int
-    results: List[SearchResult]
+    results: List[Union[SearchResult, List[SearchResult]]]
 
 
 class SearchAPI(router.Blueprint):
@@ -267,13 +267,14 @@ class SearchAPI(router.Blueprint):
             # todo finish
             ...
 
+        out = [expand_out_of_lists(item['doc']) for item in response['data']['results']]
+
         if payload.chunk != -1:
-            response['data']['results'] = list(chunk_n(
-                response['data']['results'],
+            out = list(chunk_n(
+                out,
                 payload.chunk,
             ))
 
-        out = [expand_out_of_lists(item['doc']) for item in response['data']['results']]
         return SearchResults(
             status=200,
             results=out
