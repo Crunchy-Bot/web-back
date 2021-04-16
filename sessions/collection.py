@@ -35,7 +35,7 @@ class SessionCollection:
             self._cache.close()
 
     async def as_middleware(self, request: Request, call_next):
-        maybe_session = request.headers.get("X-Session")
+        maybe_session = request.cookies.get("session")
         if maybe_session is not None:
             id_ = maybe_session
             async with self._cache.get() as conn:
@@ -55,7 +55,12 @@ class SessionCollection:
             conn: RedisConnection = conn
             await conn.execute("SET", id_, dumps(request.scope['session']))
 
-        resp.headers['X-Session'] = id_
+        resp.set_cookie(
+            key="session",
+            value=id_,
+            secure=settings.secure_sessions,
+            domain=".crunchy.gg"
+        )
 
         return resp
 
