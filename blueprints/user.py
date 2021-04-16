@@ -87,7 +87,7 @@ class UserAPI(router.Blueprint):
             'Content-Type': 'application/x-www-form-urlencoded'
         }
 
-        async with self.session.get(
+        async with self.session.post(
             discord_oauth2_token,
             data=data,
             headers=headers,
