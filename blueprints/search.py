@@ -311,7 +311,7 @@ class SearchAPI(router.Blueprint):
 
         return SearchResults(
             status=200,
-            results=response['data']['results']
+            results=[item['doc'] for item in response['data']['results']]
         )
 
 
