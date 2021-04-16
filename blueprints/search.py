@@ -291,12 +291,10 @@ class SearchAPI(router.Blueprint):
             filters=filters,
             sort_by=sort_by,
         )
-        print(to_engine)
 
         async with self.session.get(url=search_url, json=to_engine.dict()) as resp:
             resp.raise_for_status()
             response = await resp.json()
-            print(response)
 
         if payload.order_by == "rating-desc":
             response['data']['results'] = response['data']['results'][::-1]
