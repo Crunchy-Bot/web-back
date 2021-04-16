@@ -35,6 +35,7 @@ class SessionCollection:
             self._cache.close()
 
     async def as_middleware(self, request: Request, call_next):
+        print(request.headers)
         maybe_session = request.cookies.get("session")
         print(maybe_session)
         if maybe_session is not None:
