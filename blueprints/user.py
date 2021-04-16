@@ -29,7 +29,11 @@ class UserAPI(router.Blueprint):
         tags=["User API"],
     )
     async def me(self):
-        return {"isAuthed": False}
+        return {
+            "isAuthed": False,
+            "name": "ハーリさん (CF8)",
+            "icon": "https://cdn.discordapp.com/avatars/290923752475066368/4921a5665c5320be55559d1a026fca68.webp?size=128",
+        }
 
 
 def setup(app):
