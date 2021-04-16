@@ -58,7 +58,11 @@ class SessionCollection:
             conn: RedisConnection = conn
             await conn.execute("SET", id_, dumps(request.scope['session']))
 
-        resp.headers['X-Session-ID'] = id_
+        resp.set_cookie(
+            key="session",
+            value=id_,
+            secure=settings.secure_sessions,
+        )
 
         return resp
 
