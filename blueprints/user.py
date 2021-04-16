@@ -74,7 +74,7 @@ class UserAPI(router.Blueprint):
         methods=["GET"],
         tags=["User API"],
     )
-    async def me(self, request: Request, code: str):
+    async def authorize(self, request: Request, code: str):
         data = {
             'client_id': client_id,
             'client_secret': client_secret,
