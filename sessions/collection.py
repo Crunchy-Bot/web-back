@@ -35,9 +35,7 @@ class SessionCollection:
             self._cache.close()
 
     async def as_middleware(self, request: Request, call_next):
-        print(request.headers)
-        maybe_session = request.cookies.get("session")
-        print(maybe_session)
+        maybe_session = request.headers.get("X-Session")
         if maybe_session is not None:
             id_ = maybe_session
             async with self._cache.get() as conn:
@@ -50,8 +48,6 @@ class SessionCollection:
             id_ = str(uuid4())
             sess = {}
 
-        print(sess)
-
         request.scope['session'] = sess
         resp: responses.Response = await call_next(request)
 
@@ -59,11 +55,7 @@ class SessionCollection:
             conn: RedisConnection = conn
             await conn.execute("SET", id_, dumps(request.scope['session']))
 
-        resp.set_cookie(
-            key="session",
-            value=id_,
-            secure=settings.secure_sessions,
-        )
+        resp.headers['X-Session'] = id_
 
         return resp
 
