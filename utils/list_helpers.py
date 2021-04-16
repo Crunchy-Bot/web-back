@@ -5,5 +5,5 @@ def chunk_n(items: list, n: int):
 
 def expand_out_of_lists(doc: dict) -> dict:
     return {
-        k: v[0] for k, v in doc.items()
+        k: v[0] if v[0] != "None" else None for k, v in doc.items()
     }

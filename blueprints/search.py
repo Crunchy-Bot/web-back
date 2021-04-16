@@ -201,13 +201,6 @@ class SearchResult(pydantic.BaseModel):
     tags: int
     rating: float
 
-    @pydantic.validator("parent")
-    def check_parent(cls, v):
-        print(v)
-        if v == "None":
-            return None
-        return v
-
 
 class SearchResults(pydantic.BaseModel):
     """ The results of the query search query. """
