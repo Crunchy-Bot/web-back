@@ -20,5 +20,6 @@ search_engine_domain: str = os.getenv("SEARCH_DOMAIN")
 redirect_url = os.getenv("REDIRECT_URI")
 base_url = os.getenv("BASE_URL")
 
+cache_uri: str = os.getenv("CACHE_URI")
 
 
