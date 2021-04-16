@@ -183,7 +183,7 @@ class SearchPayload(pydantic.BaseModel):
         raise ValueError(f"not a valid order. Options: {ORDER_BY_OPTIONS}")
 
     @pydantic.validator("filter_by")
-    def check_order(cls, v):
+    def check_filter(cls, v):
         if FilterByOptions.all & v != 0:
             return v
 
