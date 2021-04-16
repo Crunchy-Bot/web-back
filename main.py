@@ -16,6 +16,7 @@ APP_FILES = [
 
 ORIGINS = [
     "http://127.0.0.1:9990",
+    "http://127.0.0.1:3000",
     "https://api.crunchy.gg",
     "https://crunchy.gg",
 ]
