@@ -1,5 +1,10 @@
 import os
 
+discord_domain = "discord.com"
+discord_cdn_domain = "cdn.discordapp.com"
+discord_cdn_avatar = f"https://{discord_cdn_domain}/avatars/{{}}/{{}}.webp?size={{}}"
+discord_oauth2_token = f"https://{discord_domain}/api/oauth2/token"
+discord_user = f"https://{discord_domain}/api/users/@me"
 
 # Authorization and cookies
 secure_key: str = os.getenv("SECURE_KEY")
