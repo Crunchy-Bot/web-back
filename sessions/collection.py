@@ -42,6 +42,8 @@ class SessionCollection:
                 sess = await conn.execute("GET", maybe_session)
                 if sess is None:
                     sess = {}
+                else:
+                    sess = loads(sess)
         else:
             id_ = str(uuid4())
             sess = {}
