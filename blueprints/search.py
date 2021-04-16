@@ -130,6 +130,10 @@ class SearchPayload(pydantic.BaseModel):
     order_by: str = "default"
     filter_by: int = 1
 
+    def __init__(self, *args, **kwargs):
+        print(args, kwargs)
+        super().__init__(*args, **kwargs)
+
     @pydantic.validator("type")
     def type_limits(cls, v):
         if v in ("anime", "manga"):
