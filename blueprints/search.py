@@ -25,6 +25,7 @@ class SearchQueryPayload(pydantic.BaseModel):
     engine: str
     query: str
     fuzzy: bool = False
+    fuzzy_fields: Optional[List[str]]
     limit: int = 5
     filters: List[FilterPayload]
     sort_by: Optional[str]
