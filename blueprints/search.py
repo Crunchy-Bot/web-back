@@ -126,7 +126,6 @@ class SearchPayload(pydantic.BaseModel):
     type: str = SearchTypes.anime
     limit: int = 10
     chunk: int = -1
-    fuzzy: bool = False
     tags: int = 0
     order_by: str = "default"
     filter_by: int = 1
@@ -250,7 +249,8 @@ class SearchAPI(router.Blueprint):
         to_engine = SearchQueryPayload(
             engine=payload.type,
             query=payload.query,
-            fuzzy=payload.fuzzy,
+            fuzzy=True,
+            fuzzy_fields=["title"],
             limit=payload.limit,
             filters=filters,
             sort_by=sort_by,
