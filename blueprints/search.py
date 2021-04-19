@@ -3,6 +3,7 @@ import aiohttp
 import router
 import pydantic
 
+from pprint import pprint
 from typing import List, Optional, Union
 from server import Backend
 from utils import settings, chunk_n
@@ -256,7 +257,9 @@ class SearchAPI(router.Blueprint):
         )
 
         async with self.session.post(url=search_url, json=to_engine.dict()) as resp:
-            resp.raise_for_status()
+            if resp.status != 200:
+                pprint(await resp.json())
+                resp.raise_for_status()
             response = await resp.json()
 
         if payload.order_by == "rating-desc":
