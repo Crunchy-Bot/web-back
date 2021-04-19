@@ -255,7 +255,7 @@ class SearchAPI(router.Blueprint):
             sort_by=sort_by,
         )
 
-        async with self.session.get(url=search_url, json=to_engine.dict()) as resp:
+        async with self.session.post(url=search_url, json=to_engine.dict()) as resp:
             resp.raise_for_status()
             response = await resp.json()
 
