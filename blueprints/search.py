@@ -169,6 +169,9 @@ class SearchPayload(pydantic.BaseModel):
 
     @pydantic.validator("tags")
     def check_tags(cls, v):
+        if v == 0:
+            return v
+
         if Tags.ALL_TAGS & v != 0:
             return v
 
