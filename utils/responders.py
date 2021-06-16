@@ -10,7 +10,7 @@ class StandardResponse(BaseModel):
 class TagItem(BaseModel):
     title: str
     url: str
-    referer: int
+    referer: str
     description: str
 
 

@@ -38,6 +38,7 @@ class TrackingBlueprint(router.Blueprint):
         "/{user_id:int}/{tag_id:str}",
         endpoint_name="Create / Edit Tracking Tag",
         methods=["POST"],
+        response_model=StandardResponse,
     )
     async def create_tag(
         self,
@@ -60,6 +61,7 @@ class TrackingBlueprint(router.Blueprint):
         "/{user_id:int}/{tag_id:str}",
         endpoint_name="Delete Tracking Tag",
         methods=["DELETE"],
+        response_model=StandardResponse,
     )
     async def delete_tag(self, user_id: int, tag_id: str):
         # todo auth
@@ -75,6 +77,7 @@ class TrackingBlueprint(router.Blueprint):
         "/{user_id:int}/{tag_id:str}",
         endpoint_name="Get Tag Items",
         methods=["GET"],
+        response_model=TagItemsResponse,
     )
     async def list_items(self, user_id: int, tag_id: str):
         results = await self.app.pool.fetch("""
@@ -89,6 +92,10 @@ class TrackingBlueprint(router.Blueprint):
         "/{user_id:int}/{tag_id:str}/edit",
         endpoint_name="Add Tag Item",
         methods=["POST"],
+        response_model=ItemInsertResponse,
+        responses={
+            404: {"model": StandardResponse}
+        }
     )
     async def add_item(
         self,
@@ -130,6 +137,7 @@ class TrackingBlueprint(router.Blueprint):
         "/{user_id:int}/{tag_id:str}/edit",
         endpoint_name="DELETE Tag Item",
         methods=["DELETE"],
+        response_model=StandardResponse,
     )
     async def delete_item(self, user_id: int, tag_id: str, tracking_id: UUID4):
         # todo auth
@@ -143,6 +151,7 @@ class TrackingBlueprint(router.Blueprint):
         """, user_id, tag_id, tracking_id)
 
         return StandardResponse(status=200, data="item deleted if exists")
+
 
 def setup(app):
     app.add_blueprint(TrackingBlueprint(app))
