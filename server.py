@@ -1,7 +1,10 @@
+from typing import Optional
+
 from fastapi import FastAPI
+from asyncpg import create_pool, Pool
+from aioredis import Redis, create_redis
 
 from utils import settings
-from sessions import SessionCollection
 
 
 class Backend(FastAPI):
@@ -11,9 +14,62 @@ class Backend(FastAPI):
     ):
         super().__init__(**extra)
 
-        self.secure_key = settings.secure_key
-        self.bot_token = settings.bot_auth
+        self.secure_key = settings.SECURE_KEY
+        self.bot_token = settings.BOT_AUTH
+        self._pool: Optional[Pool] = None
+        self._redis: Optional[Redis] = None
 
-        self.sessions = SessionCollection()
-        self.sessions.mount_middleware(self)
+        self.on_event("startup")(self.startup)
+        self.on_event("shutdown")(self.shutdown)
+
+    @property
+    def pool(self) -> Pool:
+        assert self._pool is not None, "pg pool was not initialised"
+        return self._pool
+
+    @property
+    def redis(self) -> Redis:
+        assert self._redis is not None, "redis was not initialised"
+        return self._redis
+
+    async def startup(self):
+        self._pool = await create_pool(settings.POSTGRES_URI)
+        self._redis = await create_redis(settings.REDIS_URI)
+
+        await self.create_tables()
+
+    async def shutdown(self):
+        if self._pool is not None:
+            await self._pool.close()
+
+        if self._redis is not None:
+            self._redis.close()
+            await self._redis.wait_closed()
+
+    async def create_tables(self):
+        await self.pool.execute("""
+        CREATE TABLE IF NOT EXISTS tracking_tags (
+            user_id BIGINT,
+            tag_id VARCHAR(32),
+            description VARCHAR(300) NOT NULL DEFAULT '',
+            CONSTRAINT COMP_KEY PRIMARY KEY (user_id, tag_id)
+        );        
+        CREATE TABLE IF NOT EXISTS tracking_items (
+            _id UUID PRIMARY KEY,
+            user_id BIGINT NOT NULL,
+            tag_id VARCHAR(32) NOT NULL,
+            title VARCHAR(128) NOT NULL,
+            url VARCHAR(256) NOT NULL DEFAULT '',
+            referer BIGINT,
+            description VARCHAR(300) NOT NULL DEFAULT '',
+            FOREIGN KEY (user_id, tag_id) 
+            REFERENCES tracking_tags (user_id, tag_id)            
+            ON DELETE CASCADE
+        );   
+        
+        """)
+
+
+
+
 
