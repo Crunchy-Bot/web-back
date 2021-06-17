@@ -48,13 +48,13 @@ class Backend(FastAPI):
 
     async def create_tables(self):
         await self.pool.execute("""
-        CREATE TABLE IF NOT EXISTS tracking_tags (
+        CREATE TABLE IF NOT EXISTS user_tracking_tags (
             user_id BIGINT,
             tag_id VARCHAR(32),
             description VARCHAR(300) NOT NULL DEFAULT '',
             CONSTRAINT COMP_KEY PRIMARY KEY (user_id, tag_id)
         );        
-        CREATE TABLE IF NOT EXISTS tracking_items (
+        CREATE TABLE IF NOT EXISTS user_tracking_items (
             _id UUID PRIMARY KEY,
             user_id BIGINT NOT NULL,
             tag_id VARCHAR(32) NOT NULL,
@@ -63,9 +63,36 @@ class Backend(FastAPI):
             referer BIGINT,
             description VARCHAR(300) NOT NULL DEFAULT '',
             FOREIGN KEY (user_id, tag_id) 
-            REFERENCES tracking_tags (user_id, tag_id)            
+            REFERENCES user_tracking_tags (user_id, tag_id)           
             ON DELETE CASCADE
         );   
+        CREATE TABLE IF NOT EXISTS commands (
+            command_id VARCHAR(32) PRIMARY KEY, 
+            name VARCHAR(32) UNIQUE,
+            category VARCHAR(32) NOT NULL,
+            about TEXT NOT NULL,
+            running TEXT NOT NULL,
+            user_required_permissions BIGINT NOT NULL DEFAULT 0,
+            bot_required_permissions BIGINT NOT NULL DEFAULT 0
+        );
+        CREATE TABLE IF NOT EXISTS user_command_aliases (
+            user_id BIGINT,
+            command_id VARCHAR(32),
+            alias VARCHAR(32),
+            PRIMARY KEY (user_id, command_id, alias),
+            FOREIGN KEY (command_id)
+            REFERENCES commands (command_id)
+            ON DELETE CASCADE                         
+        );
+        CREATE TABLE IF NOT EXISTS guild_command_aliases (
+            guild_id BIGINT,
+            command_id VARCHAR(32),
+            alias VARCHAR(32),
+            PRIMARY KEY (guild_id, command_id, alias),
+            FOREIGN KEY (command_id)
+            REFERENCES commands (command_id)
+            ON DELETE CASCADE                         
+        );
         
         """)
 
