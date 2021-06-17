@@ -190,6 +190,8 @@ class TrackingBlueprint(router.Blueprint):
         """
         Copies the items in a given tag for a given
         user to another user id.
+
+        **This does not copy referer ids**
         """
 
         await self.app.pool.execute("""
