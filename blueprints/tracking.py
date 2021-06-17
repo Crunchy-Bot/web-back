@@ -1,19 +1,30 @@
-from typing import List
-
-import asyncpg
 import uuid
+import enum
+import asyncpg
 
 import router
 
+from typing import List, Optional
 from pydantic import BaseModel, constr, AnyHttpUrl, UUID4
 from fastapi.responses import ORJSONResponse
 
 from server import Backend
-from utils.responders import (
-    StandardResponse,
-    TagItemsResponse,
-    ItemInsertResponse,
-)
+from utils.responders import StandardResponse
+
+
+class TagItem(BaseModel):
+    title: constr(max_length=128, strip_whitespace=True)
+    url: AnyHttpUrl = ""
+    referer: Optional[int]
+    description: constr(max_length=300, strip_whitespace=True) = ""
+
+
+class TagItemsResponse(StandardResponse):
+    data: List[TagItem]
+
+
+class ItemInsertResponse(StandardResponse):
+    data: str
 
 
 class TagCreationPayload(BaseModel):
@@ -21,13 +32,6 @@ class TagCreationPayload(BaseModel):
 
 
 TAG_DEFAULT = TagCreationPayload(description="")
-
-
-class ItemCreationPayload(BaseModel):
-    title: constr(max_length=128, strip_whitespace=True)
-    url: AnyHttpUrl
-    referer: int
-    description: constr(max_length=300, strip_whitespace=True)
 
 
 class ItemCopy(BaseModel):
@@ -47,7 +51,7 @@ class TrackingBlueprint(router.Blueprint):
 
     @router.endpoint(
         "/{user_id:int}/{tag_id:str}",
-        endpoint_name="Create / Edit Tracking Tag",
+        endpoint_name="Create Tracking Tag",
         methods=["POST"],
         response_model=StandardResponse,
         tags=["Content Tracking"]
@@ -120,7 +124,7 @@ class TrackingBlueprint(router.Blueprint):
         self,
         user_id: int,
         tag_id: str,
-        payload: ItemCreationPayload,
+        payload: TagItem,
     ):
         """ Adds an item to the given tag for the given user. """
         # todo auth
@@ -139,7 +143,7 @@ class TrackingBlueprint(router.Blueprint):
             RETURNING _id;
             """,
             uuid.uuid4(), user_id, tag_id, payload.title,
-            payload.url, int(payload.referer), payload.description
+            payload.url, payload.referer, payload.description
         )
 
         try:
@@ -182,11 +186,50 @@ class TrackingBlueprint(router.Blueprint):
         response_model=ItemCopyResponse,
         tags=["Content Tracking"]
     )
-    async def copy_items(self, user_id: int):
+    async def copy_items(self, user_id: int, tag_id: str, copy_to: int):
         """
         Copies the items in a given tag for a given
         user to another user id.
         """
+
+        await self.app.pool.execute("""
+            INSERT INTO user_tracking_tags (user_id, tag_id, description) 
+            SELECT $3, tag_id, description
+            FROM user_tracking_tags 
+            WHERE user_id = $1 AND tag_id = $2;
+        """, user_id, tag_id, copy_to)
+
+        existing_rows = await self.app.pool.fetch("""
+            SELECT tag_id, title, url, description
+            FROM user_tracking_items 
+            WHERE user_id = $1 AND tag_id = $2;
+        """, user_id, tag_id)
+
+        def alter(row):
+            return (
+                uuid.uuid4(),
+                copy_to,
+                row['tag_id'],
+                row['title'],
+                row['url'],
+                row['description'],
+            )
+
+        new_results = map(alter, existing_rows)
+        transferred = map(dict, existing_rows)
+
+        await self.app.pool.executemany("""
+            INSERT INTO user_tracking_items (
+                _id, 
+                user_id, 
+                tag_id, 
+                title, 
+                url, 
+                description
+            ) VALUES ($1, $2, $3, $4, $5, $6)
+        """, new_results)
+
+        return ItemCopyResponse(status=200, data=transferred)  # noqa
 
 
 def setup(app):
