@@ -1,5 +1,4 @@
 import uuid
-import enum
 import asyncpg
 
 import router
