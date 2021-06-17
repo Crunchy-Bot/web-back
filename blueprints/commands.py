@@ -149,6 +149,7 @@ class CommandUserAliasesBlueprint(router.Blueprint):
         tags=["Command User Aliases"]
     )
     async def get_aliases(self, user_id: int):
+        """ Gets the aliases for the given user. """
         # todo auth
 
         results = await self.app.pool.fetch("""
@@ -174,6 +175,7 @@ class CommandUserAliasesBlueprint(router.Blueprint):
         tags=["Command User Aliases"]
     )
     async def add_aliases(self, user_id: int, payload: CommandAlias):
+        """ Adds an alias for the given user. """
         # todo auth
 
         fut = self.app.pool.execute("""
@@ -207,6 +209,7 @@ class CommandUserAliasesBlueprint(router.Blueprint):
         alias: VarChar32 = None,
         command_id: VarChar32 = None,
     ):
+        """ Removes an alias from the given user. """
         # todo auth
 
         if command_id is not None and alias is not None:
@@ -248,6 +251,10 @@ class CommandUserAliasesBlueprint(router.Blueprint):
         tags=["Command User Aliases"]
     )
     async def copy_aliases(self, user_id: int, copy_to: int, target: AliasCopyTarget):
+        """
+        Copies a set of aliases from the given user to the target, the target
+        can be either a guild or another user.
+        """
         # todo auth
 
         if target == AliasCopyTarget.guild:
@@ -291,6 +298,8 @@ class CommandGuildAliasesBlueprint(router.Blueprint):
         tags=["Command Guild Aliases"]
     )
     async def get_aliases(self, guild_id: int):
+        """ Gets the aliases for the given guild. """
+
         # todo auth
 
         results = await self.app.pool.fetch("""
@@ -316,6 +325,8 @@ class CommandGuildAliasesBlueprint(router.Blueprint):
         tags=["Command Guild Aliases"]
     )
     async def add_aliases(self, guild_id: int, payload: CommandAlias):
+        """ Adds an alias for the given guild. """
+
         # todo auth
 
         fut = self.app.pool.execute("""
@@ -349,6 +360,8 @@ class CommandGuildAliasesBlueprint(router.Blueprint):
         alias: VarChar32 = None,
         command_id: VarChar32 = None,
     ):
+        """ Removes an alias from the given guild. """
+
         # todo auth
 
         if command_id is not None and alias is not None:
@@ -390,6 +403,11 @@ class CommandGuildAliasesBlueprint(router.Blueprint):
         tags=["Command Guild Aliases"]
     )
     async def copy_aliases(self, guild_id: int, copy_to: int, target: AliasCopyTarget):
+        """
+        Copies a set of aliases from the given guild to the target, the target
+        can be either a user or another guild.
+        """
+
         # todo auth
 
         if target == AliasCopyTarget.guild:
