@@ -2,7 +2,6 @@ from typing import Optional
 
 from fastapi import FastAPI
 from asyncpg import create_pool, Pool
-from aioredis import Redis, create_redis
 
 from utils import settings
 
@@ -17,7 +16,6 @@ class Backend(FastAPI):
         self.secure_key = settings.SECURE_KEY
         self.bot_token = settings.BOT_AUTH
         self._pool: Optional[Pool] = None
-        self._redis: Optional[Redis] = None
 
         self.on_event("startup")(self.startup)
         self.on_event("shutdown")(self.shutdown)
@@ -27,24 +25,14 @@ class Backend(FastAPI):
         assert self._pool is not None, "pg pool was not initialised"
         return self._pool
 
-    @property
-    def redis(self) -> Redis:
-        assert self._redis is not None, "redis was not initialised"
-        return self._redis
-
     async def startup(self):
         self._pool = await create_pool(settings.POSTGRES_URI)
-        self._redis = await create_redis(settings.REDIS_URI)
 
         await self.create_tables()
 
     async def shutdown(self):
         if self._pool is not None:
             await self._pool.close()
-
-        if self._redis is not None:
-            self._redis.close()
-            await self._redis.wait_closed()
 
     async def create_tables(self):
         await self.pool.execute("""
@@ -93,7 +81,20 @@ class Backend(FastAPI):
             REFERENCES commands (command_id)
             ON DELETE CASCADE                         
         );
-        
+        CREATE TABLE IF NOT EXISTS guild_events_hooks_release (
+            guild_id BIGINT PRIMARY KEY,
+            webhook_url TEXT NOT NULL,
+            border_colour TEXT,
+            text_colour TEXT,
+            background_colour TEXT
+        );
+        CREATE TABLE IF NOT EXISTS guild_events_hooks_news (
+            guild_id BIGINT PRIMARY KEY,
+            webhook_url TEXT NOT NULL,
+            border_colour TEXT,
+            text_colour TEXT,
+            background_colour TEXT        
+        );
         """)
 
 

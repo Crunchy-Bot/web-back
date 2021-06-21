@@ -52,7 +52,7 @@ app = Backend(
     description=utils.read_md("./docs/welcome.md"),
     version="0.0.1",
     docs_url=None,
-    redoc_url="/",
+    redoc_url="/v0",
     openapi_url="/v0/openapi.json",
     openapi_tags=tags_metadata,
 )

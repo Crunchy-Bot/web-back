@@ -8,6 +8,6 @@ class StandardResponse(BaseModel):
     data: Any = None
 
     def into_response(self):
-        return ORJSONResponse(self, status_code=self.status)
+        return ORJSONResponse(self.dict(), status_code=self.status)
 
 
