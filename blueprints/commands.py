@@ -52,7 +52,7 @@ class CommandsBlueprint(router.Blueprint):
     )
     async def list_commands(self):
         results = await self.app.pool.fetch("""
-            SELECT * FROM commands;
+            SELECT * FROM bot_commands;
         """)
 
         return CommandsResponse(status=200, data=list(map(dict, results)))  # noqa
@@ -69,7 +69,7 @@ class CommandsBlueprint(router.Blueprint):
 
         await self.app.pool.execute(
             """
-            INSERT INTO commands (
+            INSERT INTO bot_commands (
                 command_id, 
                 name, 
                 category, 
@@ -101,7 +101,7 @@ class CommandsBlueprint(router.Blueprint):
         # todo auth
 
         await self.app.pool.execute("""
-            DELETE FROM commands WHERE command_id = $1;
+            DELETE FROM bot_commands WHERE command_id = $1;
         """, command_id)
 
         return StandardResponse(
@@ -156,11 +156,11 @@ class CommandUserAliasesBlueprint(router.Blueprint):
             SELECT 
                 user_command_aliases.alias,
                 user_command_aliases.command_id, 
-                commands.name,
-                commands.category
+                bot_commands.name,
+                bot_commands.category
             FROM user_command_aliases
-            INNER JOIN commands 
-            ON commands.command_id = user_command_aliases.command_id
+            INNER JOIN bot_commands 
+            ON bot_commands.command_id = user_command_aliases.command_id
             WHERE 
                 user_command_aliases.user_id = $1;
         """, user_id)
@@ -306,11 +306,11 @@ class CommandGuildAliasesBlueprint(router.Blueprint):
             SELECT 
                 guild_command_aliases.alias,
                 guild_command_aliases.command_id, 
-                commands.name,
-                commands.category
+                bot_commands.name,
+                bot_commands.category
             FROM guild_command_aliases
-            INNER JOIN commands 
-            ON commands.command_id = guild_command_aliases.command_id
+            INNER JOIN bot_commands 
+            ON bot_commands.command_id = guild_command_aliases.command_id
             WHERE 
                 guild_command_aliases.guild_id = $1;
         """, guild_id)

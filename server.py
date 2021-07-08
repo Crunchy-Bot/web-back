@@ -36,14 +36,36 @@ class Backend(FastAPI):
 
     async def create_tables(self):
         await self.pool.execute("""
+        CREATE TABLE IF NOT EXISTS api_genres (
+            id BIGINT PRIMARY KEY,
+            tag TEXT UNIQUE NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS api_anime_data (
+            id BIGSERIAL PRIMARY KEY,
+            title TEXT UNIQUE NOT NULL,
+            description TEXT NOT NULL DEFAULT '',
+            rating FLOAT NOT NULL DEFAULT 1.0,
+            img_url TEXT,
+            link TEXT,
+            genres BIGINT NOT NULL DEFAULT 0
+        );
+        CREATE TABLE IF NOT EXISTS api_manga_data (
+            id BIGSERIAL PRIMARY KEY,
+            title TEXT UNIQUE NOT NULL,
+            description TEXT NOT NULL DEFAULT '',
+            rating FLOAT NOT NULL DEFAULT 1.0,
+            img_url TEXT,
+            link TEXT,
+            genres BIGINT NOT NULL DEFAULT 0
+        );
         CREATE TABLE IF NOT EXISTS user_tracking_tags (
             user_id BIGINT,
             tag_id VARCHAR(32),
             description VARCHAR(300) NOT NULL DEFAULT '',
-            CONSTRAINT COMP_KEY PRIMARY KEY (user_id, tag_id)
+            CONSTRAINT user_tracking_tags_compy_key PRIMARY KEY (user_id, tag_id)
         );        
         CREATE TABLE IF NOT EXISTS user_tracking_items (
-            _id UUID PRIMARY KEY,
+            id UUID PRIMARY KEY,
             user_id BIGINT NOT NULL,
             tag_id VARCHAR(32) NOT NULL,
             title VARCHAR(128) NOT NULL,
@@ -54,7 +76,7 @@ class Backend(FastAPI):
             REFERENCES user_tracking_tags (user_id, tag_id)           
             ON DELETE CASCADE
         );   
-        CREATE TABLE IF NOT EXISTS commands (
+        CREATE TABLE IF NOT EXISTS bot_commands (
             command_id VARCHAR(32) PRIMARY KEY, 
             name VARCHAR(32) UNIQUE,
             category VARCHAR(32) NOT NULL,
@@ -69,7 +91,7 @@ class Backend(FastAPI):
             alias VARCHAR(32),
             PRIMARY KEY (user_id, command_id, alias),
             FOREIGN KEY (command_id)
-            REFERENCES commands (command_id)
+            REFERENCES bot_commands (command_id)
             ON DELETE CASCADE                         
         );
         CREATE TABLE IF NOT EXISTS guild_command_aliases (
@@ -78,22 +100,27 @@ class Backend(FastAPI):
             alias VARCHAR(32),
             PRIMARY KEY (guild_id, command_id, alias),
             FOREIGN KEY (command_id)
-            REFERENCES commands (command_id)
+            REFERENCES bot_commands (command_id)
             ON DELETE CASCADE                         
         );
         CREATE TABLE IF NOT EXISTS guild_events_hooks_release (
             guild_id BIGINT PRIMARY KEY,
-            webhook_url TEXT NOT NULL,
-            border_colour TEXT,
-            text_colour TEXT,
-            background_colour TEXT
+            webhook_url TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS guild_events_hooks_filter (
+            guild_id BIGINT NOT NULL,
+            anime_id BIGINT,
+            FOREIGN KEY (anime_id)
+            REFERENCES api_anime_data (id)
+            ON DELETE CASCADE,
+            FOREIGN KEY (guild_id)
+            REFERENCES guild_events_hooks_release (guild_id)
+            ON DELETE CASCADE,
+            CONSTRAINT guild_events_hooks_filter_comp_key PRIMARY KEY (guild_id, anime_id)    
         );
         CREATE TABLE IF NOT EXISTS guild_events_hooks_news (
             guild_id BIGINT PRIMARY KEY,
-            webhook_url TEXT NOT NULL,
-            border_colour TEXT,
-            text_colour TEXT,
-            background_colour TEXT        
+            webhook_url TEXT NOT NULL          
         );
         """)
 
