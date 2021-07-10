@@ -8,6 +8,7 @@ from utils.responders import StandardResponse
 
 
 class EventHook(BaseModel):
+    guild_id: str
     webhook_url: str
 
 
@@ -40,6 +41,7 @@ class ReleaseEventsBlueprint(router.Blueprint):
         if anime_id is None:
             qry = f"""
             SELECT 
+                guild_id,
                 webhook_url
             FROM guild_events_hooks_release 
             {limit_section.format(1, 2)}
@@ -47,6 +49,7 @@ class ReleaseEventsBlueprint(router.Blueprint):
         else:
             qry = f"""
             SELECT 
+                guild_id,
                 webhook_url
             FROM guild_events_hooks_release 
             WHERE guild_id NOT IN (SELECT guild_id FROM guild_events_hooks_filter WHERE anime_id = $1)

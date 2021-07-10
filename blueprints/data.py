@@ -15,11 +15,14 @@ from utils.responders import StandardResponse
 class PayloadData(BaseModel):
     id: str = None
     title: str
+    title_english: Optional[str]
+    title_japanese: Optional[str]
     description: str
     rating: float
     img_url: str
     link: Optional[str] = None
     genres: int = 0
+    crunchyroll: bool
 
     @validator("rating")
     def convert_rating(cls, v):
@@ -93,7 +96,8 @@ class AnimeEndpoints(router.Blueprint):
                 rating, 
                 img_url, 
                 link, 
-                genres
+                genres,
+                crunchyroll
             FROM api_anime_data
             WHERE id = $1;
             """, anime_id)
@@ -125,17 +129,21 @@ class AnimeEndpoints(router.Blueprint):
             INSERT INTO api_anime_data (            
                 id,
                 title,
+                title_english,
+                title_japanese,
                 description, 
                 rating, 
                 img_url, 
                 link, 
-                genres
-            ) VALUES (random_string(18), $1, $2, $3, $4, $5, $6)
+                genres,
+                crunchyroll
+            ) VALUES (random_string(18), $1, $2, $3, $4, $5, $6, $7, $8, $9)
             RETURNING *;
             """,
-            payload.title, payload.description,
+            payload.title, payload.title_english,
+            payload.title_japanese, payload.description,
             payload.rating, payload.img_url,
-            payload.link, payload.genres,
+            payload.link, payload.genres, payload.crunchyroll
         )
 
         try:
@@ -152,7 +160,13 @@ class AnimeEndpoints(router.Blueprint):
             [dict(row)]
         )
 
-        return StandardResponse(status=200, data=f"anime added with id: {row['id']!r}")
+        return StandardResponse(
+            status=200,
+            data={
+                "id": row['id'],
+                "message": f"anime added with id: {row['id']!r}",
+            }
+        )
 
 
 class MangaEndpoints(router.Blueprint):
