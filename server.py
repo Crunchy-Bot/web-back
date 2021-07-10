@@ -12,6 +12,8 @@ class MeiliEngine:
         self.meili = meilisearch.Client(settings.SEARCH_ENGINE_URI)
         self._anime = self.meili.index("anime")
         self._manga = self.meili.index("manga")
+        self._anime.delete_all_documents()
+        self._manga.delete_all_documents()
 
         self._anime.update_settings({
             "searchableAttributes": ["title", "description", "genres"],
@@ -140,7 +142,7 @@ class Backend(FastAPI):
             user_id BIGINT,
             tag_id VARCHAR(32),
             description VARCHAR(300) NOT NULL DEFAULT '',
-            CONSTRAINT user_tracking_tags_compy_key PRIMARY KEY (user_id, tag_id)
+            CONSTRAINT user_tracking_tags_comp_key PRIMARY KEY (user_id, tag_id)
         );        
         CREATE TABLE IF NOT EXISTS user_tracking_items (
             id UUID PRIMARY KEY,
