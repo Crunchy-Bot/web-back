@@ -1,9 +1,64 @@
+import meilisearch
 from typing import Optional
 
 from fastapi import FastAPI
 from asyncpg import create_pool, Pool
 
 from utils import settings
+
+
+class MeiliEngine:
+    def __init__(self):
+        self.meili = meilisearch.Client(settings.SEARCH_ENGINE_URI)
+        self._anime = self.meili.index("anime")
+        self._manga = self.meili.index("manga")
+
+        self._anime.update_settings({
+            "searchableAttributes": ["title", "description", "genres"],
+        })
+
+        self._manga.update_settings({
+            "searchableAttributes": ["title", "description", "genres"],
+        })
+
+    @property
+    def anime(self):
+        return self._anime
+
+    @property
+    def manga(self):
+        return self._manga
+
+    async def update_indexes(self, app: "Backend"):
+        rows = await app.pool.fetch("""
+        SELECT 
+            title, 
+            description, 
+            rating, 
+            img_url, 
+            link, 
+            array(SELECT name FROM api_genres WHERE id & api_anime_data.genres != 0) as genres, 
+            id 
+        FROM api_anime_data;
+        """)
+
+        rows = [dict(row) for row in rows]
+        self.anime.add_documents(rows, primary_key="id")
+
+        rows = await app.pool.fetch("""
+        SELECT 
+            title, 
+            description, 
+            rating, 
+            img_url, 
+            link, 
+            array(SELECT name FROM api_genres WHERE id & api_manga_data.genres != 0) as genres, 
+            id 
+        FROM api_manga_data;
+        """)
+
+        rows = [dict(row) for row in rows]
+        self.manga.add_documents(rows, primary_key="id")
 
 
 class Backend(FastAPI):
@@ -16,9 +71,14 @@ class Backend(FastAPI):
         self.secure_key = settings.SECURE_KEY
         self.bot_token = settings.BOT_AUTH
         self._pool: Optional[Pool] = None
+        self._search_client = MeiliEngine()
 
         self.on_event("startup")(self.startup)
         self.on_event("shutdown")(self.shutdown)
+
+    @property
+    def meili(self):
+        return self._search_client
 
     @property
     def pool(self) -> Pool:
@@ -27,8 +87,9 @@ class Backend(FastAPI):
 
     async def startup(self):
         self._pool = await create_pool(settings.POSTGRES_URI)
-
         await self.create_tables()
+
+        await self.meili.update_indexes(self)
 
     async def shutdown(self):
         if self._pool is not None:

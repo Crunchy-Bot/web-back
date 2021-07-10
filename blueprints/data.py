@@ -4,7 +4,7 @@ from operator import or_
 import asyncpg
 import router
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, conint
 from typing import List, Optional
 
 from server import Backend
@@ -29,11 +29,45 @@ class DataResponse(StandardResponse):
     data: PayloadData
 
 
+class AnimeSearchResults(BaseModel):
+    hits: List[dict]
+    offset: int
+    limit: int
+    query: str
+
+
+class AnimeSearchResponse(StandardResponse):
+    data: AnimeSearchResults
+
+
 class AnimeEndpoints(router.Blueprint):
     __base_route__ = "/data/anime"
 
     def __init__(self, app: Backend):
         self.app = app
+
+    @router.endpoint(
+        "/search",
+        endpoint_name="Search Anime",
+        methods=["GET"],
+        response_model=AnimeSearchResponse,
+        tags=["Anime"]
+    )
+    def search_anime(
+        self,
+        query: str,
+        offset: conint(ge=0) = 0,
+        limit: conint(gt=0, le=50) = 10,
+    ):
+        results = self.app.meili.anime.search(
+            query,
+            {
+                'offset': offset,
+                'limit': limit,
+            },
+        )
+
+        return AnimeSearchResponse(status=200, data=dict(results))  # noqa
 
     @router.endpoint(
         "/{anime_id:str}",

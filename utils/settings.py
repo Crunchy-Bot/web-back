@@ -18,7 +18,7 @@ DEBUG: bool = bool(os.getenv("DEBUG", True))
 REDIRECT_URL = os.getenv("REDIRECT_URI")
 BASE_URL = os.getenv("BASE_URL")
 
-REDIS_URI: str = os.getenv("CACHE_URI")
+SEARCH_ENGINE_URI: str = os.getenv("SEARCH_ENGINE_URI")
 POSTGRES_URI: str = os.getenv("DATABASE_URL")
 
 
