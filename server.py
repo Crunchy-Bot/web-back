@@ -16,7 +16,7 @@ class MeiliEngine:
         self._manga.delete_all_documents()
 
         self._anime.update_settings({
-            "searchableAttributes": ["title", "description", "genres"],
+            "searchableAttributes": ["title_english", "title", "title_japanese", "description", "genres"],
         })
 
         self._manga.update_settings({
@@ -35,6 +35,8 @@ class MeiliEngine:
         rows = await app.pool.fetch("""
         SELECT 
             title, 
+            title_english,
+            title_japanese,
             description, 
             rating, 
             img_url, 

@@ -1,3 +1,4 @@
+import asyncio
 from functools import reduce
 from operator import or_
 
@@ -29,15 +30,15 @@ class DataResponse(StandardResponse):
     data: PayloadData
 
 
-class AnimeSearchResults(BaseModel):
+class SearchResults(BaseModel):
     hits: List[dict]
     offset: int
     limit: int
     query: str
 
 
-class AnimeSearchResponse(StandardResponse):
-    data: AnimeSearchResults
+class SearchResponse(StandardResponse):
+    data: SearchResults
 
 
 class AnimeEndpoints(router.Blueprint):
@@ -50,7 +51,7 @@ class AnimeEndpoints(router.Blueprint):
         "/search",
         endpoint_name="Search Anime",
         methods=["GET"],
-        response_model=AnimeSearchResponse,
+        response_model=SearchResponse,
         tags=["Anime"]
     )
     def search_anime(
@@ -67,7 +68,7 @@ class AnimeEndpoints(router.Blueprint):
             },
         )
 
-        return AnimeSearchResponse(status=200, data=dict(results))  # noqa
+        return SearchResponse(status=200, data=dict(results))  # noqa
 
     @router.endpoint(
         "/{anime_id:str}",
@@ -85,7 +86,9 @@ class AnimeEndpoints(router.Blueprint):
         row = await self.app.pool.fetchrow("""
             SELECT 
                 id,
-                title, 
+                title,
+                title_english,
+                title_japanese, 
                 description, 
                 rating, 
                 img_url, 
@@ -128,7 +131,7 @@ class AnimeEndpoints(router.Blueprint):
                 link, 
                 genres
             ) VALUES (random_string(18), $1, $2, $3, $4, $5, $6)
-            RETURNING id;
+            RETURNING *;
             """,
             payload.title, payload.description,
             payload.rating, payload.img_url,
@@ -143,6 +146,12 @@ class AnimeEndpoints(router.Blueprint):
                 data=f"anime already exists with title: {payload.title!r}",
             )
 
+        asyncio.get_running_loop().run_in_executor(
+            None,
+            self.app.meili.anime.add_documents,
+            [dict(row)]
+        )
+
         return StandardResponse(status=200, data=f"anime added with id: {row['id']!r}")
 
 
@@ -151,6 +160,29 @@ class MangaEndpoints(router.Blueprint):
 
     def __init__(self, app: Backend):
         self.app = app
+
+    @router.endpoint(
+        "/search",
+        endpoint_name="Search Manga",
+        methods=["GET"],
+        response_model=SearchResponse,
+        tags=["Manga"]
+    )
+    def search_anime(
+        self,
+        query: str,
+        offset: conint(ge=0) = 0,
+        limit: conint(gt=0, le=50) = 10,
+    ):
+        results = self.app.meili.anime.search(
+            query,
+            {
+                'offset': offset,
+                'limit': limit,
+            },
+        )
+
+        return SearchResponse(status=200, data=dict(results))  # noqa
 
     @router.endpoint(
         "/{manga_id:str}",

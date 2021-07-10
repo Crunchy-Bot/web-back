@@ -1,7 +1,4 @@
 import enum
-
-import asyncpg
-
 import router
 
 from typing import List
