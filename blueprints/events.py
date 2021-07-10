@@ -1,7 +1,6 @@
 import router
 
 from typing import List
-from itertools import count
 from pydantic import BaseModel
 
 from server import Backend
@@ -16,7 +15,7 @@ class EventsResults(StandardResponse):
     data: List[EventHook]
 
 
-class EventsBlueprint(router.Blueprint):
+class ReleaseEventsBlueprint(router.Blueprint):
     __base_route__ = "/events"
 
     def __init__(self, app: Backend):
@@ -29,20 +28,32 @@ class EventsBlueprint(router.Blueprint):
         response_model=EventsResults,
         tags=["Events"]
     )
-    async def get_release_hooks(self, page: int = 1, limit: int = -1):
+    async def get_release_hooks(self, page: int = 1, limit: int = -1, anime_id: int = None):
         # todo auth
 
         args = []
         limit_section = ""
         if limit > 0:
-            limit_section = "LIMIT $1 OFFSET $2"
+            limit_section = "LIMIT ${} OFFSET ${}"
             args = [limit, page * limit]
 
-        results = await self.app.pool.fetch(f"""
+        if anime_id is None:
+            qry = f"""
             SELECT 
                 webhook_url
-            FROM guild_events_hooks_release {limit_section};
-        """, *args)
+            FROM guild_events_hooks_release 
+            {limit_section.format(1, 2)}
+            """
+        else:
+            qry = f"""
+            SELECT 
+                webhook_url
+            FROM guild_events_hooks_release 
+            WHERE guild_id NOT IN (SELECT guild_id FROM guild_events_hooks_filter WHERE anime_id = $1)
+            {limit_section.format(2, 3)};
+            """
+            args.insert(0, anime_id)
+        results = await self.app.pool.fetch(qry, *args)
 
         return EventsResults(status=200, data=[dict(row) for row in results])  # noqa
 
@@ -113,6 +124,13 @@ class EventsBlueprint(router.Blueprint):
         """, guild_id)
 
         return StandardResponse(status=200, data="successfully removed hook")
+
+
+class NewsEventsBlueprint(router.Blueprint):
+    __base_route__ = "/events"
+
+    def __init__(self, app: Backend):
+        self.app = app
 
     @router.endpoint(
         "/news",
@@ -196,4 +214,5 @@ class EventsBlueprint(router.Blueprint):
 
 
 def setup(app):
-    app.add_blueprint(EventsBlueprint(app))
+    app.add_blueprint(ReleaseEventsBlueprint(app))
+    app.add_blueprint(NewsEventsBlueprint(app))
