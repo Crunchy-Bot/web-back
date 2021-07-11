@@ -12,8 +12,15 @@ class MeiliEngine:
         self.meili = meilisearch.Client(settings.SEARCH_ENGINE_URI)
         self._anime = self.meili.index("anime")
         self._manga = self.meili.index("manga")
-        self._anime.delete_all_documents()
-        self._manga.delete_all_documents()
+
+        try:
+            self._anime.delete_all_documents()
+        except meilisearch.client.MeiliSearchApiError:
+            pass
+        try:
+            self._manga.delete_all_documents()
+        except meilisearch.client.MeiliSearchApiError:
+            pass
 
         self._anime.update_settings({
             "searchableAttributes": ["title_english", "title", "title_japanese", "description", "genres"],
@@ -46,8 +53,9 @@ class MeiliEngine:
         FROM api_anime_data;
         """)
 
-        rows = [dict(row) for row in rows]
-        self.anime.add_documents(rows, primary_key="id")
+        if len(rows) > 0:
+            rows = [dict(row) for row in rows]
+            self.anime.add_documents(rows, primary_key="id")
 
         rows = await app.pool.fetch("""
         SELECT 
@@ -61,8 +69,9 @@ class MeiliEngine:
         FROM api_manga_data;
         """)
 
-        rows = [dict(row) for row in rows]
-        self.manga.add_documents(rows, primary_key="id")
+        if len(rows) > 0:
+            rows = [dict(row) for row in rows]
+            self.manga.add_documents(rows, primary_key="id")
 
 
 class Backend(FastAPI):
