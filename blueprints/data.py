@@ -138,6 +138,16 @@ class AnimeEndpoints(router.Blueprint):
                 genres,
                 crunchyroll
             ) VALUES (random_string(18), $1, $2, $3, $4, $5, $6, $7, $8, $9)
+            ON CONFLICT (title) 
+            DO UPDATE SET
+                title_english = excluded.title_english,
+                title_japanese = excluded.title_japanese,
+                rating = excluded.rating,
+                description = excluded.description,
+                img_url = excluded.img_url,
+                link = excluded.link,
+                genres = excluded.genres,
+                crunchyroll = excluded.crunchyroll
             RETURNING *;
             """,
             payload.title, payload.title_english,

@@ -24,6 +24,7 @@ services:
       - "7700:7700"
     volumes:
       - meilisearch-storage:/data.ms
+    restart: always
 
 volumes:
   meilisearch-storage:

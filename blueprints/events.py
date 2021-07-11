@@ -150,6 +150,7 @@ class NewsEventsBlueprint(router.Blueprint):
 
         results = await self.app.pool.fetch(f"""
             SELECT 
+                guild_id,
                 webhook_url
             FROM guild_events_hooks_news {limit_section};            
         """, *args)
