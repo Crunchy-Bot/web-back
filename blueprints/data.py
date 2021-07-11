@@ -199,7 +199,7 @@ class MangaEndpoints(router.Blueprint):
         offset: conint(ge=0) = 0,
         limit: conint(gt=0, le=50) = 10,
     ):
-        results = self.app.meili.anime.search(
+        results = self.app.meili.manga.search(
             query,
             {
                 'offset': offset,
