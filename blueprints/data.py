@@ -5,6 +5,7 @@ from operator import or_
 import asyncpg
 import router
 
+from fastapi import Query
 from pydantic import BaseModel, validator, conint
 from typing import List, Optional
 
@@ -256,10 +257,6 @@ class GenreFlagsResponse(StandardResponse):
     data: List[GenreData]
 
 
-class FlagsResponse(StandardResponse):
-    data: str
-
-
 class GenreEndpoints(router.Blueprint):
     __base_route__ = "/data/genres"
 
@@ -329,7 +326,6 @@ class GenreEndpoints(router.Blueprint):
         tags=["Genres"],
     )
     async def get_genre_from_flags(self, flags: int):
-
         rows = await self.app.pool.fetch("""
         SELECT name FROM api_genres WHERE id & $1 != 0;
         """, flags)
@@ -340,7 +336,7 @@ class GenreEndpoints(router.Blueprint):
         "/flags",
         endpoint_name="Get Flags From Genres",
         methods=["GET"],
-        response_model=GenreFlagsResponse,
+        response_model=StandardResponse,
         responses={
             404: {
                 "model": StandardResponse
@@ -348,9 +344,9 @@ class GenreEndpoints(router.Blueprint):
         },
         tags=["Genres"],
     )
-    async def flags_from_genres(self, genres: List[str]):
+    async def get_flags_from_genres(self, genres: List[str] = Query(...)):
         if len(genres) == 0:
-            return FlagsResponse(status=200, data='0')
+            return StandardResponse(status=200, data='0')
 
         rows = await self.app.pool.fetch("""
         SELECT id FROM postgres.public.api_genres WHERE name = any($1::text[]);
@@ -359,7 +355,7 @@ class GenreEndpoints(router.Blueprint):
         mapper = [row['id'] for row in rows]
 
         flags = reduce(or_, mapper) if genres else 0
-        return FlagsResponse(status=200, data=str(flags))
+        return StandardResponse(status=200, data=str(flags))
 
 
 def setup(app):

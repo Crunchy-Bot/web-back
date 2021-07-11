@@ -29,7 +29,7 @@ class ReleaseEventsBlueprint(router.Blueprint):
         response_model=EventsResults,
         tags=["Events"]
     )
-    async def get_release_hooks(self, page: int = 1, limit: int = -1, anime_id: int = None):
+    async def get_release_hooks(self, page: int = 1, limit: int = -1, anime_id: str = None):
         # todo auth
 
         args = []

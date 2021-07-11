@@ -191,7 +191,7 @@ class Backend(FastAPI):
         );
         CREATE TABLE IF NOT EXISTS guild_events_hooks_filter (
             guild_id BIGINT NOT NULL,
-            anime_id BIGINT,
+            anime_id TEXT NOT NULL,
             FOREIGN KEY (anime_id)
             REFERENCES api_anime_data (id)
             ON DELETE CASCADE,
