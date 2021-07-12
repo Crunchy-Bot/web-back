@@ -349,7 +349,7 @@ class GenreEndpoints(router.Blueprint):
             return StandardResponse(status=200, data='0')
 
         rows = await self.app.pool.fetch("""
-        SELECT id FROM postgres.public.api_genres WHERE name = any($1::text[]);
+        SELECT id FROM api_genres WHERE name = any($1::text[]);
         """, genres)
 
         mapper = [row['id'] for row in rows]
