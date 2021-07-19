@@ -165,10 +165,16 @@ class AnimeEndpoints(router.Blueprint):
                 data=f"anime already exists with title: {payload.title!r}",
             )
 
+        row = dict(row)
+        g_rows = await self.app.pool.fetch("""
+        SELECT name FROM api_genres WHERE id & $1 != 0;
+        """, row['genres'])
+        row['genres'] = [g_row['name'] for g_row in g_rows]
+
         asyncio.get_running_loop().run_in_executor(
             None,
             self.app.meili.anime.add_documents,
-            [dict(row)]
+            [row]
         )
 
         return StandardResponse(
