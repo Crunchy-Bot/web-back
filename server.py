@@ -48,6 +48,7 @@ class MeiliEngine:
             rating, 
             img_url, 
             link, 
+            crunchyroll,
             array(SELECT name FROM api_genres WHERE id & api_anime_data.genres != 0) as genres, 
             id 
         FROM api_anime_data;
