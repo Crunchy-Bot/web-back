@@ -101,7 +101,7 @@ class ReleaseEventsBlueprint(router.Blueprint):
     async def update_release_hook(self, payload: EventHook):
         # todo auth
 
-        await self.app.pool.execute(
+        row = await self.app.pool.fetchrow(
             """
             INSERT INTO guild_events_hooks_release (
                 guild_id, 
@@ -109,11 +109,12 @@ class ReleaseEventsBlueprint(router.Blueprint):
             ) VALUES ($1, $2)
             ON CONFLICT (guild_id) 
             DO UPDATE 
-            SET webhook_url = excluded.webhook_url;
+            SET webhook_url = excluded.webhook_url
+            RETURNING guild_id;
             """,
             int(payload.guild_id), payload.webhook_url
         )
-        return StandardResponse(status=200, data="successfully added hook")
+        return StandardResponse(status=200, data=f"successfully added hook for {dict(row)}")
 
     @router.endpoint(
         "/releases/{guild_id:int}",
@@ -191,7 +192,7 @@ class NewsEventsBlueprint(router.Blueprint):
     async def update_news_hook(self, payload: EventHook):
         # todo auth
 
-        await self.app.pool.execute(
+        row = await self.app.pool.fetchrow(
             """
             INSERT INTO guild_events_hooks_news (
                 guild_id, 
@@ -199,12 +200,13 @@ class NewsEventsBlueprint(router.Blueprint):
             ) VALUES ($1, $2)
             ON CONFLICT (guild_id) 
             DO UPDATE 
-            SET webhook_url = excluded.webhook_url;
+            SET webhook_url = excluded.webhook_url
+            RETURNING guild_id;
             """,
             int(payload.guild_id), payload.webhook_url,
         )
 
-        return StandardResponse(status=200, data="successfully added hook")
+        return StandardResponse(status=200, data=f"successfully added hook {row}")
 
     @router.endpoint(
         "/news/{guild_id:int}",
