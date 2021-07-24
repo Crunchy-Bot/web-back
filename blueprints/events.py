@@ -92,13 +92,13 @@ class ReleaseEventsBlueprint(router.Blueprint):
         return EventHook(**row)
 
     @router.endpoint(
-        "/releases/{guild_id:int}/edit",
+        "/releases/add",
         endpoint_name="Add Release Hook",
         methods=["POST"],
         response_model=StandardResponse,
         tags=["Events"]
     )
-    async def add_release_hook(self, guild_id: int, payload: EventHook):
+    async def add_release_hook(self, payload: EventHook):
         # todo auth
 
         await self.app.pool.execute(
@@ -108,12 +108,12 @@ class ReleaseEventsBlueprint(router.Blueprint):
                 webhook_url
             ) VALUES ($1, $2);
             """,
-            guild_id, payload.webhook_url
+            payload.guild_id, payload.webhook_url
         )
         return StandardResponse(status=200, data="successfully added hook")
 
     @router.endpoint(
-        "/releases/{guild_id:int}/edit",
+        "/releases/{guild_id:int}",
         endpoint_name="Remove Release Hook",
         methods=["DELETE"],
         tags=["Events"]
@@ -180,12 +180,12 @@ class NewsEventsBlueprint(router.Blueprint):
         return EventHook(**row)
 
     @router.endpoint(
-        "/news/{guild_id:int}/edit",
+        "/news/add",
         endpoint_name="Add News Hook",
         methods=["POST"],
         tags=["Events"]
     )
-    async def add_news_hook(self, guild_id: int, payload: EventHook):
+    async def add_news_hook(self, payload: EventHook):
         # todo auth
 
         await self.app.pool.execute(
@@ -195,13 +195,13 @@ class NewsEventsBlueprint(router.Blueprint):
                 webhook_url
             ) VALUES ($1, $2);
             """,
-            guild_id, payload.webhook_url,
+            payload.guild_id, payload.webhook_url,
         )
 
         return StandardResponse(status=200, data="successfully added hook")
 
     @router.endpoint(
-        "/news/{guild_id:int}/edit",
+        "/news/{guild_id:int}",
         endpoint_name="Remove News Hook",
         methods=["DELETE"],
         tags=["Events"]
