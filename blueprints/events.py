@@ -92,13 +92,13 @@ class ReleaseEventsBlueprint(router.Blueprint):
         return EventHook(**row)
 
     @router.endpoint(
-        "/releases/add",
-        endpoint_name="Add Release Hook",
+        "/releases/update",
+        endpoint_name="Update Release Hook",
         methods=["POST"],
         response_model=StandardResponse,
         tags=["Events"]
     )
-    async def add_release_hook(self, payload: EventHook):
+    async def update_release_hook(self, payload: EventHook):
         # todo auth
 
         await self.app.pool.execute(
@@ -106,7 +106,10 @@ class ReleaseEventsBlueprint(router.Blueprint):
             INSERT INTO guild_events_hooks_release (
                 guild_id, 
                 webhook_url
-            ) VALUES ($1, $2);
+            ) VALUES ($1, $2)
+            ON CONFLICT (guild_id) 
+            DO UPDATE 
+            SET webhook_url = excluded.webhook_url;
             """,
             payload.guild_id, payload.webhook_url
         )
@@ -180,12 +183,12 @@ class NewsEventsBlueprint(router.Blueprint):
         return EventHook(**row)
 
     @router.endpoint(
-        "/news/add",
-        endpoint_name="Add News Hook",
+        "/news/update",
+        endpoint_name="Update News Hook",
         methods=["POST"],
         tags=["Events"]
     )
-    async def add_news_hook(self, payload: EventHook):
+    async def update_news_hook(self, payload: EventHook):
         # todo auth
 
         await self.app.pool.execute(
@@ -193,7 +196,10 @@ class NewsEventsBlueprint(router.Blueprint):
             INSERT INTO guild_events_hooks_news (
                 guild_id, 
                 webhook_url
-            ) VALUES ($1, $2);
+            ) VALUES ($1, $2)
+            ON CONFLICT (guild_id) 
+            DO UPDATE 
+            SET webhook_url = excluded.webhook_url;
             """,
             payload.guild_id, payload.webhook_url,
         )
