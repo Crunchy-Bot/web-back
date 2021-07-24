@@ -111,7 +111,7 @@ class ReleaseEventsBlueprint(router.Blueprint):
             DO UPDATE 
             SET webhook_url = excluded.webhook_url;
             """,
-            payload.guild_id, payload.webhook_url
+            int(payload.guild_id), payload.webhook_url
         )
         return StandardResponse(status=200, data="successfully added hook")
 
@@ -201,7 +201,7 @@ class NewsEventsBlueprint(router.Blueprint):
             DO UPDATE 
             SET webhook_url = excluded.webhook_url;
             """,
-            payload.guild_id, payload.webhook_url,
+            int(payload.guild_id), payload.webhook_url,
         )
 
         return StandardResponse(status=200, data="successfully added hook")
