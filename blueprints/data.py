@@ -23,7 +23,7 @@ class PayloadData(BaseModel):
     img_url: str
     link: Optional[str] = None
     genres: int = 0
-    crunchyroll: bool
+    crunchyroll: bool = False
 
     @validator("rating")
     def convert_rating(cls, v):
