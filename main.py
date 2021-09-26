@@ -8,13 +8,11 @@ from fastapi.responses import ORJSONResponse
 from server import Backend
 
 BASE_PATH = "/v0"
-
 APP_FILES = [
     f"blueprints.{name[:-3]}"
     for name in os.listdir("./blueprints")
     if not name.startswith("__")
 ]
-
 ORIGINS = {
     "http://127.0.0.1:9990",
     "http://127.0.0.1:3000",
