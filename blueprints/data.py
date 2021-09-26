@@ -30,8 +30,12 @@ class PayloadData(BaseModel):
         return round(v, 1)
 
 
+class ResultPayloadData(PayloadData):
+    genres: List[str] = []
+
+
 class DataResponse(StandardResponse):
-    data: PayloadData
+    data: ResultPayloadData
 
 
 class SearchResults(BaseModel):
