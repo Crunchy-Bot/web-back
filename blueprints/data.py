@@ -97,7 +97,7 @@ class AnimeEndpoints(router.Blueprint):
                 rating, 
                 img_url, 
                 link, 
-                array_agg(SELECT name FROM api_genres WHERE id & $1 != 0) AS genres,
+                array(SELECT name FROM api_genres WHERE id & api_anime_data.genres != 0) as genres,
                 crunchyroll
             FROM api_anime_data
             WHERE id = $1;
@@ -236,7 +236,7 @@ class MangaEndpoints(router.Blueprint):
                 rating, 
                 img_url, 
                 link, 
-                array_agg(SELECT name FROM api_genres WHERE id & $1 != 0) AS genres,
+                array(SELECT name FROM api_genres WHERE id & api_manga_data.genres != 0) as genres
             FROM api_manga_data
             WHERE id = $1;
             """, manga_id)
