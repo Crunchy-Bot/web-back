@@ -20,7 +20,7 @@ class PayloadData(BaseModel):
     title_japanese: Optional[str]
     description: str
     rating: float
-    img_url: str
+    img_url: Optional[str]
     link: Optional[str] = None
     genres: int = 0
     crunchyroll: bool = False
