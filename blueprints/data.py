@@ -23,15 +23,19 @@ class PayloadData(BaseModel):
     img_url: str
     link: Optional[str] = None
     genres: int = 0
-    crunchyroll: bool
+    crunchyroll: bool = False
 
     @validator("rating")
     def convert_rating(cls, v):
         return round(v, 1)
 
 
+class ResultPayloadData(PayloadData):
+    genres: List[str] = []
+
+
 class DataResponse(StandardResponse):
-    data: PayloadData
+    data: ResultPayloadData
 
 
 class SearchResults(BaseModel):
@@ -97,7 +101,7 @@ class AnimeEndpoints(router.Blueprint):
                 rating, 
                 img_url, 
                 link, 
-                genres,
+                array(SELECT name FROM api_genres WHERE id & api_anime_data.genres != 0) as genres,
                 crunchyroll
             FROM api_anime_data
             WHERE id = $1;
@@ -236,7 +240,7 @@ class MangaEndpoints(router.Blueprint):
                 rating, 
                 img_url, 
                 link, 
-                genres
+                array(SELECT name FROM api_genres WHERE id & api_manga_data.genres != 0) as genres
             FROM api_manga_data
             WHERE id = $1;
             """, manga_id)
