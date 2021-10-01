@@ -131,7 +131,7 @@ class TrackingBlueprint(router.Blueprint):
         fut = self.app.pool.fetchrow(
             """
             INSERT INTO user_tracking_items (
-                _id,
+                id,
                 user_id, 
                 tag_id, 
                 title, 
@@ -139,7 +139,7 @@ class TrackingBlueprint(router.Blueprint):
                 referer, 
                 description
             ) VALUES ($1, $2, $3, $4, $5, $6, $7) 
-            RETURNING _id;
+            RETURNING id;
             """,
             uuid.uuid4(), user_id, tag_id, payload.title,
             payload.url, payload.referer, payload.description
@@ -154,7 +154,7 @@ class TrackingBlueprint(router.Blueprint):
             )
             return ORJSONResponse(msg.dict(), status_code=404)
 
-        return ItemInsertResponse(status=200, data=str(res['_id']))
+        return ItemInsertResponse(status=200, data=str(res['id']))
 
     @router.endpoint(
         "/{user_id:int}/{tag_id:str}/edit",
@@ -166,14 +166,12 @@ class TrackingBlueprint(router.Blueprint):
     async def remove_item(self, user_id: int, tag_id: str, tracking_id: UUID4):
         """ Remove an item from a given tag for the given user. """
 
-        # todo auth
-
         await self.app.pool.execute("""
             DELETE FROM user_tracking_items 
             WHERE 
                 user_id = $1 AND 
                 tag_id = $2 AND
-                _id = $3;
+                id = $3;
         """, user_id, tag_id, tracking_id)
 
         return StandardResponse(status=200, data="item deleted if exists")
@@ -221,7 +219,7 @@ class TrackingBlueprint(router.Blueprint):
 
         await self.app.pool.executemany("""
             INSERT INTO user_tracking_items (
-                _id, 
+                id, 
                 user_id, 
                 tag_id, 
                 title, 
