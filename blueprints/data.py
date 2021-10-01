@@ -229,7 +229,7 @@ class MangaEndpoints(router.Blueprint):
                 "model": StandardResponse
             }
         },
-        tags=["Anime"]
+        tags=["Manga"]
     )
     async def get_manga_with_id(self, manga_id: str):
         row = await self.app.pool.fetchrow("""
