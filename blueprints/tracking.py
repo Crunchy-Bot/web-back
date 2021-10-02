@@ -28,7 +28,7 @@ class ItemInsertResponse(StandardResponse):
 
 class TagCreationPayload(BaseModel):
     tag_name: constr(min_length=1, max_length=32)
-    description: constr(max_length=300)
+    description: constr(max_length=300) = ""
 
 
 class UserTag(TagCreationPayload):
@@ -37,9 +37,6 @@ class UserTag(TagCreationPayload):
 
 class UserTags(StandardResponse):
     data: List[UserTag]
-
-
-TAG_DEFAULT = TagCreationPayload(description="")
 
 
 class ItemCopy(BaseModel):
@@ -65,10 +62,10 @@ class TrackingBlueprint(router.Blueprint):
         tags=["Content Tracking"]
     )
     async def create_tag(
-        self,
-        user_id: int,
-        tag_id: str,
-        payload: TagCreationPayload = TAG_DEFAULT,
+            self,
+            user_id: int,
+            tag_id: str,
+            payload: TagCreationPayload,
     ):
         """ Creates a tag for a given user. """
         # todo auth
@@ -152,6 +149,18 @@ class TrackingBlueprint(router.Blueprint):
     ):
         """ Adds an item to the given tag for the given user. """
         # todo auth
+
+        count = await self.app.pool.fetchrow(
+            """
+            SELECT COUNT(id) AS total
+            FROM user_tracking_items 
+            WHERE user_id = $1 AND tag_id = $2;
+            """,
+            user_id, tag_id
+        )
+
+        if count['total'] >= 20:
+            return ORJSONResponse(StandardResponse(status=400, data="Max items already exists"))
 
         fut = self.app.pool.fetchrow(
             """
