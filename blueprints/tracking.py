@@ -30,6 +30,14 @@ class TagCreationPayload(BaseModel):
     description: constr(max_length=300)
 
 
+class UserTag(TagCreationPayload):
+    tag_id: str
+
+
+class UserTags(StandardResponse):
+    data: List[UserTag]
+
+
 TAG_DEFAULT = TagCreationPayload(description="")
 
 
@@ -72,6 +80,22 @@ class TrackingBlueprint(router.Blueprint):
         """, user_id, tag_id, payload.description)
 
         return StandardResponse(status=200, data="successfully updated / created tag")
+
+    @router.endpoint(
+        "/{user_id:int}/tags",
+        endpoint_name="Get All User Tags",
+        methods=["GET"],
+        response_model=UserTags,
+        tags=["Content Tracking"]
+    )
+    async def get_all_user_tags(self, user_id: int):
+        results = await self.app.pool.fetch("""
+            SELECT tag_id, description
+            FROM user_tracking_tags
+            WHERE user_id = $1;
+        """, user_id)
+
+        return UserTags(status=200, data=list(map(dict, results)))  # noqa
 
     @router.endpoint(
         "/{user_id:int}/{tag_id:str}",
