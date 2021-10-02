@@ -153,6 +153,7 @@ class Backend(FastAPI):
         CREATE TABLE IF NOT EXISTS user_tracking_tags (
             user_id BIGINT,
             tag_id VARCHAR(32),
+            tag_name VARCHAR(32),
             description VARCHAR(300) NOT NULL DEFAULT '',
             CONSTRAINT user_tracking_tags_comp_key PRIMARY KEY (user_id, tag_id)
         );        

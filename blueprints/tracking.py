@@ -27,6 +27,7 @@ class ItemInsertResponse(StandardResponse):
 
 
 class TagCreationPayload(BaseModel):
+    tag_name: constr(min_length=1, max_length=32)
     description: constr(max_length=300)
 
 
@@ -73,11 +74,11 @@ class TrackingBlueprint(router.Blueprint):
         # todo auth
 
         await self.app.pool.execute("""
-            INSERT INTO user_tracking_tags (user_id, tag_id, description)
-            VALUES ($1, $2, $3)
+            INSERT INTO user_tracking_tags (user_id, tag_id, tag_name, description)
+            VALUES ($1, $2, $3, $4)
             ON CONFLICT (user_id, tag_id)
             DO UPDATE SET description = EXCLUDED.description;
-        """, user_id, tag_id, payload.description)
+        """, user_id, tag_id, payload.tag_name, payload.description)
 
         return StandardResponse(status=200, data="successfully updated / created tag")
 
@@ -90,7 +91,7 @@ class TrackingBlueprint(router.Blueprint):
     )
     async def get_all_user_tags(self, user_id: int):
         results = await self.app.pool.fetch("""
-            SELECT tag_id, description
+            SELECT tag_name, tag_id, description
             FROM user_tracking_tags
             WHERE user_id = $1;
         """, user_id)
